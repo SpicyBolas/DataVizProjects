@@ -1,0 +1,22 @@
+body {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: turquoise;
+}
+
+svg {
+    border: 2px black solid;
+    box-shadow: 5px 5px grey;
+    background-color: white;
+}
+
+.tooltip {
+    position: absolute;
+    pointer-events: none;
+    background: #000;
+    color: #FFF;    
+}
+
