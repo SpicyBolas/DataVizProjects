@@ -65,6 +65,16 @@ async function getData(){
 
     const variationExtent = d3.extent(tempData.monthlyVariance,(d)=>(d.variance));
     
+    const variationMin = d3.min(tempData.monthlyVariance,(d)=>d.variance);
+    const variationMax = d3.max(tempData.monthlyVariance,(d)=>d.variance);
+
+    //Create vector splitting th variance values into 6 parts
+    var varianceCoarse = [];
+    for(let i=0;i<6;i++){
+        varianceCoarse.push(((i+1)/6)*(variationMax-variationMin)+variationMin);
+    }
+
+
     const color = d3.scaleSequential()
         .interpolator(d3.interpolateInferno)
         .domain(variationExtent);
@@ -79,7 +89,7 @@ async function getData(){
     var svg = d3.select('svg')
         .attr("margin",margin)
         .attr("width",width+margin)
-        .attr("height",height+margin);
+        .attr("height",height+margin+50);
     
     //Add Labels
     //Title
@@ -138,27 +148,73 @@ async function getData(){
         .style("font-size","14px")
         .call(d3.axisLeft(scaleY));
     
-
+    const rectWidth = 50;
     //Create Legend
-    //Temperature Scale
-    var legend = svg.selectAll(".legend")
-    .data(color.ticks())
-    .enter()
-    .append("g")
-    .attr({
-            "class":"legend",
-            "transform":function(d,i) {
-                return "translate(-10," + (height + margin-40)+")";
-            }
-        });
+    svg.selectAll('rect')
+                .data(varianceCoarse)
+                .enter()
+                .append('rect')
+                .attr('y',height+130)
+                .attr('x',(d,i)=>i*rectWidth+100)
+                .attr('height',rectWidth)
+                .attr('width',rectWidth)
+                .attr('stroke','black')
+                .attr('fill',(d)=>color(d));
+    //Add text labels 
+    svg.selectAll('.legend-label')
+                .data(varianceCoarse)
+                .enter()
+                .append('text')
+                .text((d) => Math.round(d))
+                .attr('y',height+200)
+                .attr('x',(d,i)=>(i+1)*rectWidth+100)
+                .attr("text-anchor","middle")
+                .style("font-size",20);
+    //Add minimum text label with minimum value
+    svg.append('text')
+        .attr('class','legend-label')
+        .text(Math.round(variationMin))
+        .attr('y',height+200)
+        .attr('x',100)
+        .attr('text-anchor','middle')
+        .style('font-size',20);
 
-    /*legend.append("rect")
-    .attr({
-        "width": 40,
-        "height": 20,
-        "fill": function (d){
-            return color()
-    })*/
+    //Add horizontal line under the legend
+    svg.append('line')
+    .style('stroke','black')
+    .attr('x1',100)
+    .attr('x2',8*rectWidth)
+    .attr('y1',height+210)
+    .attr('y2',height+210)
+
+    //Add vertical ticks to the legend line
+    svg.selectAll('.legend-ticks')
+        .data(varianceCoarse)
+        .enter()
+        .append('line')
+        .style('stroke','black')
+        .attr('x1',(d,i)=>(i+1)*rectWidth+100)
+        .attr('x2',(d,i)=>(i+1)*rectWidth+100)
+        .attr('y1',height+210)
+        .attr('y2',height+203)
+
+    //append line on first legend point
+    svg.append('line')
+        .attr('class','.legend-ticks')
+        .style('stroke','black')
+        .attr('x1',100)
+        .attr('x2',100)
+        .attr('y1',height+210)
+        .attr('y2',height+203)
+    
+    //Append Legend Title
+    svg.append('text')
+        .attr('class','legend-title')
+        .text('Temperature Variance')
+        .attr('y',height+235)
+        .attr('x',3*rectWidth+100)
+        .attr('text-anchor','middle')
+        .style('font-size',25);
 
 
     //Create tooltip
